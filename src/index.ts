@@ -1,7 +1,21 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { v4 as uuidv4 } from "uuid";
 import { swaggerUI } from "@hono/swagger-ui";
 import { StatusCode } from "hono/utils/http-status";
+import {
+  StructError,
+  assert,
+  boolean,
+  object,
+  optional,
+  string,
+} from "superstruct";
+
+const todoSchema = object({
+  title: string(),
+  completed: optional(boolean()),
+});
 
 class CustomError extends Error {
   constructor(public status: StatusCode, public message: string) {
@@ -18,10 +32,17 @@ type Context = {
 
 const app = new Hono<Context>();
 
+app.use("*", cors({ origin: "*", maxAge: 3600 * 6, credentials: true }));
+
 app.onError((error, c) => {
   console.log(error.message);
 
-  const status = error instanceof CustomError ? error.status : 500;
+  const status =
+    error instanceof CustomError
+      ? error.status
+      : error instanceof StructError
+      ? 400
+      : 500;
 
   return c.json({ error: error.message, status: status }, status);
 });
@@ -51,28 +72,16 @@ app.get("/todos/:user_id", async (c) => {
 
 app.post("/todos/:user_id", async (c) => {
   const user_id = c.req.param("user_id");
-  const data = await c.req.formData();
+  const data = await c.req.json();
 
-  /**
-   * Title
-   * Completed
-   * 
-   */
+  assert(data, todoSchema);
 
-  console.log(data);
-
-  const title = data.get("title");
-  console.log(title);
-  if (!title) {
-    throw new CustomError(400, "Missing title");
-  }
-  const completed = data.get("completed") === "true";
   const id = uuidv4();
 
   const todo = {
     id,
-    title,
-    completed,
+    title: data.title,
+    completed: data.completed,
   };
 
   await c.env.TODOS.put(`${user_id}_${id}`, JSON.stringify(todo));
@@ -83,7 +92,12 @@ app.post("/todos/:user_id", async (c) => {
 app.get("/ui", swaggerUI({ url: "/doc" }));
 
 app.get("/error", (c) => {
-  throw new CustomError(403, "Custom Error");
+  const data = {
+    title: "test",
+    completed: "false",
+  };
+  assert(data, todoSchema);
+  return c.json(data);
 });
 
 export default app;
