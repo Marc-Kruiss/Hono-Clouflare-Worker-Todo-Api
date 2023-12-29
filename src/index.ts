@@ -19,11 +19,13 @@ import {
 import { CustomError } from "./errors";
 import { swaggerSpec } from "./swagger-spec";
 
+// Schemas
 const todoSchema = object({
   title: string(),
   completed: optional(boolean()),
 });
 
+// Context
 type Context = {
   Bindings: {
     TODOS: KVNamespace;
@@ -34,8 +36,8 @@ type Context = {
   };
 };
 
+// Application and CORS
 const app = new Hono<Context>();
-
 app.use("*", cors({ origin: "*", maxAge: 3600 * 6, credentials: true }));
 
 app.onError((error, c) => {
@@ -51,7 +53,7 @@ app.onError((error, c) => {
   return c.json({ error: error.message, status: status }, status);
 });
 
-// Use the middleware to serve Swagger UI at /ui
+// Get Requests
 app.get("/swagger-spec", (c) =>
   c.text(swaggerSpec, { headers: { "Content-Type": "application/yaml" } })
 );
@@ -73,6 +75,16 @@ app.get("/todos", authenticateUser, async (c) => {
   return c.json(todos);
 });
 
+app.get("/error", (c) => {
+  const data = {
+    title: "test",
+    completed: "false",
+  };
+  assert(data, todoSchema);
+  return c.json(data);
+});
+
+// Post Requests
 app.post("/todos", authenticateUser, async (c) => {
   const user_id = c.get("user_id");
   const data = await c.req.json();
@@ -89,15 +101,6 @@ app.post("/todos", authenticateUser, async (c) => {
 
   await c.env.TODOS.put(`${user_id}_${id}`, JSON.stringify(todo));
   return c.json(todo);
-});
-
-app.get("/error", (c) => {
-  const data = {
-    title: "test",
-    completed: "false",
-  };
-  assert(data, todoSchema);
-  return c.json(data);
 });
 
 export default app;
