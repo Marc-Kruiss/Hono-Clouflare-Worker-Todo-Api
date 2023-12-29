@@ -1,39 +1,29 @@
-# Hono Todo Application
+# Cloudflare Workers Todo API
 
-## Commands
-```
-npm install
-npm run dev
-```
+## Overview
+This project is a Cloudflare Workers application utilizing the Hono framework to create a RESTful API for a Todo application. It interacts with Cloudflare's KV database to store and retrieve todo items.
 
-```
-npm run deploy
-```
+## Features
+- **CRUD Operations**: Create, Read, Update, and Delete todo items.
+- **Error Handling**: Custom error handling for different types of errors.
+- **Cross-Origin Resource Sharing (CORS)**: Configured to allow cross-origin requests.
+- **Swagger UI**: Integrated Swagger UI for API documentation and testing.
 
-## Überblick
-Diese Anwendung ist eine einfache REST-API, die mit `Hono`, einem modernen Web-Framework für Deno, gebaut wurde. Sie ermöglicht Benutzern das Erstellen, Abrufen und Verwalten von Todo-Einträgen. Die Anwendung unterstützt CORS und bietet eine Swagger-UI für eine einfachere API-Dokumentation und Interaktion.
+## Endpoints
+- `GET /`: Returns a welcome message.
+- `GET /todos`: Retrieves all todos.
+- `GET /todos/:user_id`: Retrieves todos for a specific user.
+- `POST /todos/:user_id`: Creates a new todo for a user.
+- `GET /ui`: Serves the Swagger UI.
+- `GET /error`: Endpoint to test error handling.
 
-## Funktionen
-- **Basis-Endpoints**: `GET /`, `GET /todos`, `GET /todos/:user_id`, `POST /todos/:user_id`.
-- **Fehlerbehandlung**: Benutzerdefinierte Fehlermeldungen und HTTP-Statuscodes.
-- **Swagger-UI**: Interaktive API-Dokumentation unter `/ui`.
-- **CORS-Unterstützung**: Ermöglicht Cross-Origin-Anfragen.
+## Setup and Installation
+1. Clone the repository.
+2. Install dependencies: `npm install`
+3. Configure your Cloudflare Workers environment.
+4. Deploy using Wrangler: `wrangler publish`
 
-## Anforderungen
-- Deno
-- Zugriff auf ein KVNamespace für die Speicherung von Todos.
-
-## Schnellstart
-1. **Installation von Deno**: Besuchen Sie [Deno's offizielle Website](https://deno.land/) und folgen Sie den Anweisungen zur Installation.
-2. **Klonen des Repos**: `git clone [Ihr Repository-URL]`.
-3. **Starten der Anwendung**: Führen Sie `deno run --allow-net index.ts` in Ihrem Terminal aus.
-
-## API-Endpunkte
-### Basis-URL: `http://localhost:8000`
-- `GET /`: Begrüßt Benutzer.
-- `GET /todos`: Listet alle Todos auf.
-- `GET /todos/:user_id`: Listet Todos eines bestimmten Benutzers auf.
-- `POST /todos/:user_id`: Erstellt ein Todo für einen bestimmten Benutzer.
-
-## Fehlerbehandlung
-Die Anwendung gibt benutzerdefinierte Fehlermeldungen und HTTP-Statuscodes basierend auf dem Fehlerkontext zurück. Dies umfasst die Handhabung von `CustomError` und `StructError`.
+## Dependencies
+- Hono
+- superstruct
+- uuid
