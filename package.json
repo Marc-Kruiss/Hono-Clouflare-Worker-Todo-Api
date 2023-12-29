@@ -4,6 +4,7 @@
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@hono/swagger-ui": "^0.2.1",
     "hono": "^3.11.11",
     "superstruct": "^1.0.3",
@@ -12,6 +13,12 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231218.0",
     "@types/uuid": "^9.0.7",
+=======
+    "hono": "^3.11.11"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+>>>>>>> b6531442c2a41dacc1deb069632688e1429c179a
     "wrangler": "^3.22.0"
   }
 }

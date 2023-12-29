@@ -5,9 +5,22 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
+<<<<<<< HEAD
     "lib": ["esnext"],
     "types": ["@cloudflare/workers-types"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   }
 }
+=======
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "@cloudflare/workers-types"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  },
+}
+>>>>>>> b6531442c2a41dacc1deb069632688e1429c179a
