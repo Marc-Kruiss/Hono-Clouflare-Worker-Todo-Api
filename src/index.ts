@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { v4 as uuidv4 } from "uuid";
 import { swaggerUI } from "@hono/swagger-ui";
-import { StatusCode } from "hono/utils/http-status";
+
 import {
   StructError,
   assert,
@@ -11,22 +11,26 @@ import {
   optional,
   string,
 } from "superstruct";
+import {
+  authenticateUser,
+  helloMiddleware,
+  superSecretWeapon,
+} from "./middleware";
+import { CustomError } from "./errors";
+import { swaggerSpec } from "./swagger-spec";
 
 const todoSchema = object({
   title: string(),
   completed: optional(boolean()),
 });
 
-class CustomError extends Error {
-  constructor(public status: StatusCode, public message: string) {
-    super(message);
-    this.name = "Custom Hono Error";
-  }
-}
-
 type Context = {
   Bindings: {
     TODOS: KVNamespace;
+  };
+  Variables: {
+    secret: string;
+    user_id: string;
   };
 };
 
@@ -47,22 +51,21 @@ app.onError((error, c) => {
   return c.json({ error: error.message, status: status }, status);
 });
 
-app.get("/", (c) => {
-  console.log("somebody is accessing this endpoint.");
-  return c.text("Hello Marc!");
+// Use the middleware to serve Swagger UI at /ui
+app.get("/swagger-spec", (c) =>
+  c.text(swaggerSpec, { headers: { "Content-Type": "application/yaml" } })
+);
+app.get("/ui", swaggerUI({ spec: swaggerSpec, url: "/swagger-spec" }));
+
+app.get("/", helloMiddleware, superSecretWeapon, authenticateUser, (c) => {
+  const secret = c.get("secret");
+
+  const userId = c.get("user_id");
+  return c.text(secret);
 });
 
-app.get("/todos", async (c) => {
-  const items = await c.env.TODOS.list();
-  const todos = await Promise.all(
-    items.keys.map(({ name }) => c.env.TODOS.get(name))
-  );
-  return c.json(todos);
-});
-
-app.get("/todos/:user_id", async (c) => {
-  const user_id = c.req.param("user_id");
-
+app.get("/todos", authenticateUser, async (c) => {
+  const user_id = c.get("user_id");
   const items = await c.env.TODOS.list({ prefix: `${user_id}_` });
   const todos = await Promise.all(
     items.keys.map(({ name }) => c.env.TODOS.get(name))
@@ -70,8 +73,8 @@ app.get("/todos/:user_id", async (c) => {
   return c.json(todos);
 });
 
-app.post("/todos/:user_id", async (c) => {
-  const user_id = c.req.param("user_id");
+app.post("/todos", authenticateUser, async (c) => {
+  const user_id = c.get("user_id");
   const data = await c.req.json();
 
   assert(data, todoSchema);
@@ -87,9 +90,6 @@ app.post("/todos/:user_id", async (c) => {
   await c.env.TODOS.put(`${user_id}_${id}`, JSON.stringify(todo));
   return c.json(todo);
 });
-
-// Use the middleware to serve Swagger UI at /ui
-app.get("/ui", swaggerUI({ url: "/doc" }));
 
 app.get("/error", (c) => {
   const data = {
