@@ -34,13 +34,13 @@ const jwtMiddlewareTemplate: MiddlewareHandler = async (c, next) => {
     sub: "user123",
     role: "admin",
   };
-  let secret = "mmkey";
-  const token = await sign(payload, secret);
+  let jwt_secret = "mySecretKey";
+  const token = await sign(payload, jwt_secret);
   console.log("Token");
   console.log(token);
 
-  secret = "mySecretKey";
-  const decodedPayload = await verify(token, secret);
+  const decodedPayload = await verify(token, jwt_secret);
+  console.log("Decoded Payload");
   console.log(decodedPayload);
 
   await next();
