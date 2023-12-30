@@ -44,7 +44,7 @@ You can customize these middleware functions according to your requirements.
 
 ### Swagger UI
 
-- Access the Swagger UI documentation at `/ui`.
+- Access the Swagger UI documentation at `/docs`.
 
 ### Get Requests
 
