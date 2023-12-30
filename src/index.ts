@@ -15,6 +15,7 @@ import {
   authenticateUser,
   helloMiddleware,
   superSecretWeapon,
+  authMiddleware,
 } from "./middleware";
 import { CustomError } from "./errors";
 import { swaggerSpec } from "./swagger-spec";
@@ -39,6 +40,8 @@ type Context = {
 // Application and CORS
 const app = new Hono<Context>();
 app.use("*", cors({ origin: "*", maxAge: 3600 * 6, credentials: true }));
+
+app.use("/api/*", authMiddleware);
 
 app.onError((error, c) => {
   console.log(error.message);
@@ -66,15 +69,6 @@ app.get("/", helloMiddleware, superSecretWeapon, authenticateUser, (c) => {
   return c.text(secret);
 });
 
-app.get("/todos", authenticateUser, async (c) => {
-  const user_id = c.get("user_id");
-  const items = await c.env.TODOS.list({ prefix: `${user_id}_` });
-  const todos = await Promise.all(
-    items.keys.map(({ name }) => c.env.TODOS.get(name))
-  );
-  return c.json(todos);
-});
-
 app.get("/error", (c) => {
   const data = {
     title: "test",
@@ -84,8 +78,35 @@ app.get("/error", (c) => {
   return c.json(data);
 });
 
-// Post Requests
-app.post("/todos", authenticateUser, async (c) => {
+app.get("/ghl", async (c) => {
+  console.log(c.body);
+});
+
+// get todos by user_id
+
+app.get("/todos", authenticateUser, async (c) => {
+  const user_id = c.get("user_id");
+  const items = await c.env.TODOS.list({ prefix: `${user_id}_` });
+  const todos = await Promise.all(
+    items.keys.map(({ name }) => c.env.TODOS.get(name))
+  );
+  return c.json(todos);
+});
+
+// Get all todos
+app.get("/api/todos", async (c) => {
+  console.log("JWT PAYLOAD");
+  console.log(c.get("jwtPayload"));
+
+  const items = await c.env.TODOS.list();
+  const todos = await Promise.all(
+    items.keys.map(({ name }) => c.env.TODOS.get(name))
+  );
+  return c.json(todos);
+});
+
+// Post new Todo
+app.post("/api/todos", authenticateUser, async (c) => {
   const user_id = c.get("user_id");
   const data = await c.req.json();
 

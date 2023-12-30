@@ -1,5 +1,7 @@
 import type { MiddlewareHandler } from "hono";
 import { CustomError } from "./errors";
+import { decode, sign, verify } from "hono/jwt";
+import { env } from "hono/adapter";
 
 export const helloMiddleware: MiddlewareHandler = async (c, next) => {
   console.log("hey");
@@ -11,6 +13,7 @@ export const superSecretWeapon: MiddlewareHandler = async (c, next) => {
   await next();
 };
 
+// Authentication with simple Bearer Token existence, use token as user_id
 export const authenticateUser: MiddlewareHandler = async (c, next) => {
   // Check for Authentication headers
   const authentication = c.req.header("Authentication");
@@ -23,4 +26,44 @@ export const authenticateUser: MiddlewareHandler = async (c, next) => {
   // Inject user info
   c.set("user_id", user_id);
   await next();
+};
+
+// jwt workflow
+const jwtMiddlewareTemplate: MiddlewareHandler = async (c, next) => {
+  const payload = {
+    sub: "user123",
+    role: "admin",
+  };
+  let secret = "mmkey";
+  const token = await sign(payload, secret);
+  console.log("Token");
+  console.log(token);
+
+  secret = "mySecretKey";
+  const decodedPayload = await verify(token, secret);
+  console.log(decodedPayload);
+
+  await next();
+};
+
+export const authMiddleware: MiddlewareHandler = async (c, next) => {
+  // Get Secret and token from header
+  const { jwt_secret } = env(c, "workerd");
+  const token = c.req.header("Authorization")?.split("Bearer ")[1];
+
+  if (!token) {
+    throw new CustomError(401, "Invalid Authorization header");
+  }
+
+  // Hier JWT-Token überprüfen
+  const user = await verify(token, jwt_secret).catch((err: Error) => {
+    throw new CustomError(401, `Invalid Authorization token`);
+  });
+
+  // Setzen des Benutzers in den Kontext
+  c.set("jwtPayload", user);
+  console.log("Auth Payload");
+  console.log(user);
+
+  return next();
 };
