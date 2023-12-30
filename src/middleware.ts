@@ -8,8 +8,8 @@ export const helloMiddleware: MiddlewareHandler = async (c, next) => {
   await next();
 };
 
-export const superSecretWeapon: MiddlewareHandler = async (c, next) => {
-  c.set("secret", "1234");
+export const setContextVariable: MiddlewareHandler = async (c, next) => {
+  c.set("customContextVar", "1234");
   await next();
 };
 

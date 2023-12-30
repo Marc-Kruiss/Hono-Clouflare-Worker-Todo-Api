@@ -1,81 +1,128 @@
 export const swaggerSpec: string = `
-openapi: 3.0.0
+swagger: "2.0"
 info:
-  title: Todo API
-  version: 1.0.0
-  description: Eine API für Todo-Management mit Authentifizierung.
-
-servers:
-  - url: https://example.com
-    description: Live server
+  title: "Todo Hono API for Cloudflare Workers API"
+  description: "Hono API to handle Todos for Cloudflare Workers, integrating jwt authentication and cloudflare's k1 database"
+  version: "1.0.0"
+basePath: "/"
+schemes:
+  - "http"
 
 paths:
+  /:
+    get:
+      summary: "Hello Endpoint"
+      responses:
+        200:
+          description: "Successful response"
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Hello, World!"
+
+  /error:
+    get:
+      summary: "Error Endpoint"
+      responses:
+        200:
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  completed:
+                    type: boolean
+              example:
+                title: "test"
+                completed: false
+
+  /ghl:
+    get:
+      summary: "GHL Endpoint"
+      responses:
+        200:
+          description: "Successful response"
+
   /todos:
     get:
-      summary: Liste aller Todos für einen Benutzer
-      security:
-        - bearerAuth: []
+      summary: "Get Todos by user_id"
       responses:
-        '200':
-          description: Eine Liste von Todos
+        200:
+          description: "Successful response"
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Todo'
-        '401':
-          description: Nicht autorisiert
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    completed:
+                      type: boolean
 
-    post:
-      summary: Erstellt ein neues Todo
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Todo'
+  /api/todos:
+    get:
+      summary: "Get All Todos"
       responses:
-        '201':
-          description: Todo erfolgreich erstellt
+        200:
+          description: "Successful response"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Todo'
-        '400':
-          description: Ungültige Daten
-        '401':
-          description: Nicht autorisiert
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    completed:
+                      type: boolean
 
-  /ui:
-    get:
-      summary: Swagger UI
+    post:
+      summary: "Create a New Todo"
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              completed:
+                type: boolean
       responses:
-        '200':
-          description: Swagger UI Seite
+        201:
+          description: "Todo created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  completed:
+                    type: boolean
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+definitions:
+  CustomError:
+    type: object
+    properties:
+      status:
+        type: integer
+        format: int32
+      message:
+        type: string
 
-  schemas:
-    Todo:
-      type: object
-      required:
-        - title
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        title:
-          type: string
-        completed:
-          type: boolean
-          default: false
 `;

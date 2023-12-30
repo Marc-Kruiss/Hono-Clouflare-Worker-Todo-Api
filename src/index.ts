@@ -14,7 +14,7 @@ import {
 import {
   authenticateUser,
   helloMiddleware,
-  superSecretWeapon,
+  setContextVariable,
   authMiddleware,
 } from "./middleware";
 import { CustomError } from "./errors";
@@ -32,7 +32,7 @@ type Context = {
     TODOS: KVNamespace;
   };
   Variables: {
-    secret: string;
+    customContextVar: string;
     user_id: string;
   };
 };
@@ -60,13 +60,11 @@ app.onError((error, c) => {
 app.get("/swagger-spec", (c) =>
   c.text(swaggerSpec, { headers: { "Content-Type": "application/yaml" } })
 );
-app.get("/ui", swaggerUI({ spec: swaggerSpec, url: "/swagger-spec" }));
+app.get("/docs", swaggerUI({ spec: swaggerSpec, url: "/swagger-spec" }));
 
-app.get("/", helloMiddleware, superSecretWeapon, authenticateUser, (c) => {
-  const secret = c.get("secret");
-
-  const userId = c.get("user_id");
-  return c.text(secret);
+app.get("/", helloMiddleware, setContextVariable, (c) => {
+  const cVar = c.get("customContextVar");
+  return c.text(cVar);
 });
 
 app.get("/error", (c) => {
@@ -75,15 +73,10 @@ app.get("/error", (c) => {
     completed: "false",
   };
   assert(data, todoSchema);
-  return c.json(data);
+  return c.json("Custom Context Value:" + data);
 });
 
-app.get("/ghl", async (c) => {
-  console.log(c.body);
-});
-
-// get todos by user_id
-
+// get todos by user_id from authentication header
 app.get("/todos", authenticateUser, async (c) => {
   const user_id = c.get("user_id");
   const items = await c.env.TODOS.list({ prefix: `${user_id}_` });
