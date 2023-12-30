@@ -1,128 +1,78 @@
 export const swaggerSpec: string = `
-swagger: "2.0"
+openapi: 3.0.0
 info:
-  title: "Todo Hono API for Cloudflare Workers API"
-  description: "Hono API to handle Todos for Cloudflare Workers, integrating jwt authentication and cloudflare's k1 database"
-  version: "1.0.0"
-basePath: "/"
-schemes:
-  - "http"
+  title: Ihre Anwendungsname
+  version: 1.0.0
+  description: Beschreibung Ihrer Anwendung
 
 paths:
-  /:
-    get:
-      summary: "Hello Endpoint"
-      responses:
-        200:
-          description: "Successful response"
-          content:
-            text/plain:
-              schema:
-                type: string
-              example: "Hello, World!"
-
-  /error:
-    get:
-      summary: "Error Endpoint"
-      responses:
-        200:
-          description: "Successful response"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  title:
-                    type: string
-                  completed:
-                    type: boolean
-              example:
-                title: "test"
-                completed: false
-
-  /ghl:
-    get:
-      summary: "GHL Endpoint"
-      responses:
-        200:
-          description: "Successful response"
-
-  /todos:
-    get:
-      summary: "Get Todos by user_id"
-      responses:
-        200:
-          description: "Successful response"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    title:
-                      type: string
-                    completed:
-                      type: boolean
-
   /api/todos:
     get:
-      summary: "Get All Todos"
+      summary: Todos abrufen
+      description: Abrufen aller Todos
+      security:
+        - bearerAuth: []
       responses:
-        200:
-          description: "Successful response"
+        '200':
+          description: Erfolgreiche Anfrage
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    title:
-                      type: string
-                    completed:
-                      type: boolean
-
+                  $ref: '#/components/schemas/Todo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  
     post:
-      summary: "Create a New Todo"
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              title:
-                type: string
-              completed:
-                type: boolean
+      summary: Neues Todo erstellen
+      description: Erstellen eines neuen Todos
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: JSON-Anfragekörper mit Todo-Details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Todo'
       responses:
-        201:
-          description: "Todo created successfully"
+        '201':
+          description: Erfolgreich erstellt
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  title:
-                    type: string
-                  completed:
-                    type: boolean
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
-definitions:
-  CustomError:
-    type: object
-    properties:
-      status:
-        type: integer
-        format: int32
-      message:
-        type: string
+components:
+  schemas:
+    Todo:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        completed:
+          type: boolean
+      required:
+        - title
+
+  responses:
+    Unauthorized:
+      description: Ungültiger JWT-Token
+    BadRequest:
+      description: Ungültige Anfrage
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
 
 `;

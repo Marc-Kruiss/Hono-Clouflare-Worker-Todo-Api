@@ -46,6 +46,7 @@ const jwtMiddlewareTemplate: MiddlewareHandler = async (c, next) => {
   await next();
 };
 
+// verify jwt token
 export const authMiddleware: MiddlewareHandler = async (c, next) => {
   // Get Secret and token from header
   const { jwt_secret } = env(c, "workerd");
